@@ -1,0 +1,55 @@
+#include <iostream>
+#include <string>
+#include <ctype.h>
+using namespace std;
+
+//Solution 1
+bool isPalindrome(string inputString){
+    bool palindrome = true;
+    
+    //get input length
+    int size = inputString.length(); 
+    for(int i=0; i<size; i++){
+        inputString[i] = tolower(inputString[i]);
+    }
+    
+    //check for the front and back whether they are the same until i>size-1 or i==size-1
+    int j = size -1;
+    int k=0;
+    for(int i=0; i<size/2 && palindrome == true; i++){
+        //cout<<i<<endl;
+        if(isdigit(inputString[k]) == false &&  //check for the trash symnbol string existance at the front
+        isalpha(inputString[k]) == false || 
+        isdigit(inputString[j-i]) == false &&
+        isalpha(inputString[j-i]) == false)
+        { 
+            if(isdigit(inputString[k]) == false &&  //check for the trash symnbol string existance at the front
+            isalpha(inputString[k]) == false){
+                ++k;
+                
+            }
+            if(isdigit(inputString[j-i]) == false && //check for the trash symnbol string existance at the back
+        isalpha(inputString[j-i]) == false){
+                --j;
+                
+            }
+            
+        }
+        else if(inputString[k] != inputString[j-i]) //check the front and back character is not the same
+        { 
+            palindrome = false;
+        }
+        if(inputString[k] == inputString[j-i]){ //if match +1 position at front (why not both? because the back position is following the var 'i')
+            ++k;
+        }
+    }
+    return palindrome;
+}
+
+int main(){
+    string inputString = "";
+    cin>>inputString;
+    cout<<"Return result should be: "<<isPalindrome(inputString);
+    
+    return 0;
+}
