@@ -9,16 +9,16 @@ bool isPalindrome(string inputString){
     
     //get input length
     int size = inputString.length(); 
-    for(int i=0; i<size; i++){
-        inputString[i] = tolower(inputString[i]);
-    }
     
     //check for the front and back whether they are the same until i>size-1 or i==size-1
     int j = size -1;
     int k=0;
     for(int i=0; i<size/2 && palindrome == true; i++){
-        //cout<<i<<endl;
-        if(isdigit(inputString[k]) == false &&  //check for the trash symnbol string existance at the front
+        //to uniform the alphabet of the inputString
+        tolower(inputString[k]);
+        tolower(inputString[k-i]);
+        
+        if(isdigit(inputString[k]) == false &&  //check for the trash symnbol string existance at the front and back
         isalpha(inputString[k]) == false || 
         isdigit(inputString[j-i]) == false &&
         isalpha(inputString[j-i]) == false)
