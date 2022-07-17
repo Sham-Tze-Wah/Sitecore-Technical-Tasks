@@ -1,0 +1,479 @@
+using System;
+
+namespace Task3
+{
+    using System;
+    using System.Collections.Generic;
+    //using System.Drawing;
+    using System.Linq;
+    using System.Text;
+
+    class Minefields
+    {
+        #region Fields
+
+        //fields
+        private Minefield[,] grid; //Creates an array of minefield cells
+        private Random r = new Random(Guid.NewGuid().GetHashCode()); //Generates random locations
+        private int[,] previousPos; //previous position walked by the dog
+
+        private int[,] safePath; //record the 2d array of safe path
+        private int safePos = 0; //record how many set of position has been store
+
+        #endregion Fields
+
+        #region Constructors
+
+        //constructor
+        public Minefields(int rows, int columns)
+        {
+            //Initializes the cells
+            grid = new Minefield[rows, columns];
+
+            for (int index1 = 0; index1 < rows; index1++)
+            {
+                for (int j = 0; j < columns; j++)
+                {
+                    Task3.Minefields.Minefield minefield = new Task3.Minefields.Minefield();
+                    minefield.IsSafe(true); //true means safe, false means dangerous
+                    grid[j, index1] = minefield;
+
+                }
+            }
+
+            //Initialise the safePath
+            safePath = new int[100, 2];
+
+            //Initialise the path for Ally
+            previousPos = new int[1, 2];
+
+            //Example 1
+            grid[0, 0].IsSafe(false);
+            grid[2, 0].IsSafe(false);
+            grid[4, 0].IsSafe(false);
+            grid[1, 1].IsSafe(false);
+            grid[2, 1].IsSafe(false);
+            grid[0, 2].IsSafe(false);
+            grid[1, 2].IsSafe(false);
+            grid[4, 2].IsSafe(false);
+            grid[0, 3].IsSafe(false);
+            grid[2, 3].IsSafe(false);
+            grid[3, 3].IsSafe(false);
+            grid[4, 3].IsSafe(false);
+            grid[1, 4].IsSafe(false);
+            grid[2, 4].IsSafe(false);
+            grid[3, 4].IsSafe(false);
+            grid[4, 4].IsSafe(false);
+
+            ////Creates Mines
+            //int totalCell = rows * columns;
+            //int mineTotal = r.Next(totalCell / 2, totalCell - columns - 1);
+            //for (int k = 0; k < mineTotal; k++)
+            //{
+            //    //Continuously creates mines at random locations until a certain amount are created
+            //    int index, j;
+            //    do
+            //    {
+            //        index = r.Next(0, grid.GetLength(0));
+            //        j = r.Next(0, grid.GetLength(1));
+
+            //    } while (grid[index, j].GetSafety() == false);
+            //    grid[index, j].isSafe = false;
+            //}
+
+            ////Create a safe path
+            //int i = 3; //random safe path for first row
+            //for (int p = 0; p < columns; p++)
+            //{
+            //    grid[i, p].isSafe = true; //assign safe position into the minefield
+            //    if (i >= rows - 1)
+            //    { //if the safe position is at the most right end of minefield
+            //        --i;
+            //    }
+            //    else if (i <= 0)
+            //    { //if the safe position is at the most left end of minefield
+            //        ++i;
+            //    }
+            //    else
+            //    { //randomised the safe path whether go down, left, or right
+            //        i = i + (r.Next(-1, 1));
+            //    }
+            //}
+        }
+
+        #endregion Constructors
+
+        #region Properties
+
+        //Gets and sets current Game State (playing, lose, win)
+        //Getter and setter 
+        public void SetGrid(int row, int column, Minefield minefield)
+        {
+            grid[row, column] = minefield;
+        }
+        public bool GetGridSafety(int row, int column)
+        {
+            return grid[row, column].GetSafety();
+        }
+        public bool GetGridVisit(int row, int column)
+        {
+            return grid[row, column].GetVisited();
+        }
+        public void SetPreviousPos(int row, int column)
+        {
+            this.previousPos[0, 0] = row;
+            this.previousPos[0, 1] = column;
+        }
+        public void SetSafePath(int row, int column)
+        {
+            this.safePath[safePos, 0] = row;
+            this.safePath[safePos, 1] = column;
+        }
+        public void UpdateSafePos()
+        {
+            ++this.safePos;
+        }
+        public void DeductSafePos()
+        {
+            --this.safePos;
+        }
+        public void SetSafePos(int safePos)
+        {
+            this.safePos = safePos;
+        }
+        public int GetSafePos()
+        {
+            return this.safePos;
+        }
+        public int[,] GetSafePath()
+        {
+            return safePath;
+        }
+
+        #endregion Properties
+
+        #region Methods
+
+        //Methods for DFS algorithm to dodge the mine
+        public void ReturnSafePath(int row, int column)
+        {
+
+            //get the step for Ally
+            SetPreviousPos(row, column);
+
+            //record the safe path
+            SetSafePath(row, column);
+            UpdateSafePos();
+
+            try
+            {
+                //stopping case for this recursive
+                if (column >= 4)
+                {
+                    //print out the closure for the dog
+                    Console.Write("\nDog has passed through the minefield! \n");
+
+                    //print out the Ally's last step amd her closure
+                    Console.Write("\nAlly: [" + previousPos[0, 0] + "," + previousPos[0, 1] + "] ");
+                    Console.Write("\nAlly has passed through the minefield!");
+                }
+
+                //row-1, col+1 (bottom left)
+                else if (row - 1 >= 0 && column + 1 >= 0 && !grid[row - 1, column + 1].GetVisited() && grid[row - 1, column + 1].GetSafety())
+                {
+                    //print out the safe path step
+                    Console.Write("\nDog: [" + (row - 1) + "," + (column + 1) + "] \n");
+                    Console.Write("Ally: [" + previousPos[0, 0] + "," + previousPos[0, 1] + "] \n");
+                    grid[row - 1, column + 1].IsVisited(true);
+
+                    ////record the safe path
+                    //SetSafePath(row - 1, column + 1);
+                    //UpdateSafePos();
+
+                    //update the step for Ally
+                    SetPreviousPos(row - 1, column + 1);
+
+                    //recursively search for safe path
+                    ReturnSafePath(row - 1, column + 1);
+                }
+
+                //col + 1 (down)
+                else if (column + 1 >= 0 && !grid[row, column + 1].GetVisited() && grid[row, column + 1].GetSafety())
+                {
+                    //print out the safe path step
+                    Console.Write("\nDog: [" + row + "," + (column + 1) + "] \n");
+                    Console.Write("Ally: [" + previousPos[0, 0] + "," + previousPos[0, 1] + "] \n");
+                    grid[row, column + 1].IsVisited(true);
+
+                    ////record the safe path
+                    //SetSafePath(row, column + 1);
+                    //UpdateSafePos();
+
+                    //update the step for Ally
+                    SetPreviousPos(row, column + 1);
+
+                    //recursively search for safe path
+                    ReturnSafePath(row, column + 1);
+                }
+
+                //row + 1, col+1 (bottom right)
+                else if (row + 1 < grid.GetLength(0) && column + 1 >= 0 && !grid[row + 1, column + 1].GetVisited() && grid[row + 1, column + 1].GetSafety())
+                {
+                    //print out the safe path step
+                    Console.Write("\nDog: [" + (row + 1) + "," + (column + 1) + "] \n");
+                    Console.Write("Ally: [" + previousPos[0, 0] + "," + previousPos[0, 1] + "] \n");
+                    grid[row + 1, column + 1].IsVisited(true);
+
+                    ////record the safe path
+                    //SetSafePath(row + 1, column + 1);
+                    //UpdateSafePos();
+
+                    //update the step for Ally
+                    SetPreviousPos(row + 1, column + 1);
+
+                    //recursively search for safe path
+                    ReturnSafePath(row + 1, column + 1);
+                }
+
+                //row-1 (left)
+                else if (row - 1 >= 0 && column >= 0 && !grid[row - 1, column].GetVisited() && grid[row - 1, column].GetSafety())
+                {
+                    //print out the safe path step
+                    Console.Write("\nDog: [" + (row - 1) + "," + column + "] \n");
+                    Console.Write("Ally: [" + previousPos[0, 0] + "," + previousPos[0, 1] + "] \n");
+                    grid[row - 1, column].IsVisited(true);
+
+                    ////record the safe path
+                    //SetSafePath(row - 1, column);
+                    //UpdateSafePos();
+
+                    //update the step for Ally
+                    SetPreviousPos(row - 1, column);
+
+                    //recursively search for safe path
+                    ReturnSafePath(row - 1, column);
+                }
+
+                //row+1 (right)
+                else if (row + 1 < grid.GetLength(0) && column >= 0 && !grid[row + 1, column].GetVisited() && grid[row + 1, column].GetSafety())
+                {
+                    //print out the safe path step
+                    Console.Write("\nDog: [" + (row + 1) + "," + column + "] \n");
+                    Console.Write("Ally: [" + previousPos[0, 0] + "," + previousPos[0, 1] + "] \n");
+                    grid[row + 1, column].IsVisited(true);
+
+                    ////record the safe path
+                    //SetSafePath(row + 1, column);
+                    //UpdateSafePos();
+
+                    //update the step for Ally
+                    SetPreviousPos(row + 1, column);
+
+                    //recursively search for safe path
+                    ReturnSafePath(row + 1, column);
+                }
+
+                // //backtrack - return to the original path (when forward step provide false safety)
+                // else if(row-1 >= 0 && column-1 >= 0 && !grid[row-1, column-1].GetSafety() || 
+                // column-1 >= 0 && !grid[row,column-1].GetSafety() || 
+                // row+1<grid.GetLength(0) && column-1 >= 0 && !grid[row+1,column-1].GetSafety()){
+
+                // }
+
+                // //row-1, col-1 (backtrack - top left)
+                // else if(row-1 >= 0 && column-1 >= 0 && grid[row-1,column-1].GetSafety()){
+                //     //print out the safe path step
+                //     Console.Write("\nDog: [" + (row-1) + "," + (column-1) + "] \n");
+                //     Console.Write("Ally: [" + previousPos[0,0] + "," + previousPos[0,1] + "] \n");
+                //     grid[row-1, column-1].IsVisited(true);
+
+                //     //update the step for Ally
+                //     SetPreviousPos(row-1, column-1);
+
+                //     //recursively search for safe path
+                //     ReturnSafePath(row-1,column-1);
+                // }
+
+                // //col-1 (backtrack - up)
+                // else if(column-1 >= 0 && grid[row,column-1].GetSafety()){
+                //     //print out the safe path step
+                //     Console.Write("\nDog: [" + row + "," + (column-1) + "] \n");
+                //     Console.Write("Ally: [" + previousPos[0,0] + "," + previousPos[0,1] + "] \n");
+                //     grid[row, column-1].IsVisited(true);
+
+                //     //update the step for Ally
+                //     SetPreviousPos(row, column-1);
+
+                //     //recursively search for safe path
+                //     ReturnSafePath(row,column-1);
+                // }
+
+                // //row+1, col-1 (backtrack - top right)
+                // else if(row+1<grid.GetLength(0) && column-1 >= 0 && grid[row+1,column-1].GetSafety()){
+                //     //print out the safe path step
+                //     Console.Write("\nDog: [" + (row+1) + "," + (column-1) + "] \n");
+                //     Console.Write("Ally: [" + previousPos[0,0] + "," + previousPos[0,1] + "] \n");
+                //     grid[row+1, column-1].IsVisited(true);
+
+                //     //update the step for Ally
+                //     SetPreviousPos(row+1, column-1);
+
+                //     //recursively search for safe path
+                //     ReturnSafePath(row+1,column-1);
+                // }
+
+                //special case: where there is no safe adjacent position at starting point and for back track purpose
+                else if (column < 0)
+                {
+                    //print out the safe path step
+                    Console.Write("\nDog: [" + (row + 1) + "," + (column) + "] \n");
+                    Console.Write("Ally: [" + previousPos[0, 0] + "," + previousPos[0, 1] + "] \n");
+
+                    //update the step for Ally
+                    SetPreviousPos(row + 1, column);
+
+                    //recursively search for safe path
+                    ReturnSafePath(row + 1, column);
+                }
+                //back track when column = 0
+                else if (column == 0)
+                {
+                    //print out the safe path step that go to top right
+                    Console.Write("\nDog: [" + (row+1) + "," + (column - 1) + "] \n");
+
+                    //special case: Ally need to stand there
+                    Console.Write("Ally: [" + previousPos[0,0] + "," + previousPos[0, 1] + "] \n");
+
+                    //recursively search for safe path
+                    ReturnSafePath(row+1, column - 1);
+                }
+
+                //when the back track is move towards negative column
+                else if(safePath[safePos, 1] - 1 < 0)
+                {
+                    //safe pos reduce 1 not to stay at the empty index position
+                    DeductSafePos();
+
+                    //safe pos reduce 1 so that both dog and ally step backward towards the safe position
+                    DeductSafePos();
+
+                    //print out the safe path step
+                    Console.Write("\nDog: [" + (safePath[safePos, 0]) + "," + (safePath[safePos, 1]) + "] \n");
+                    Console.Write("Ally: [" + (safePath[safePos - 1, 0]) + "," + (safePath[safePos - 1, 1]) + "] \n");
+
+                    //update the step for Ally
+                    SetPreviousPos(row, column);
+
+                    //recursively search for safe path 
+                    ReturnSafePath(safePath[safePos, 0], safePath[safePos, 1]);
+                }
+
+                //back track purposes
+                else
+                {
+                    //safe pos reduce 1 not to stay at the empty index position
+                    DeductSafePos();
+
+                    //safe pos reduce 1 so that both dog and ally step backward towards the safe position
+                    DeductSafePos();
+
+                    Console.Write("\nDog: [" + safePath[safePos, 0] + "," + safePath[safePos, 1] + "] \n");
+                    Console.Write("Ally: [" + safePath[safePos - 1, 0] + "," + safePath[safePos - 1, 1] + "] \n");
+
+                    //Ally current position (safe position)
+                    SetPreviousPos(safePath[safePos - 1, 0], safePath[safePos - 1, 1]);
+
+                    //update the visited status of the back track position
+                    grid[safePath[safePos, 0], safePath[safePos, 1]].IsVisited(false);
+
+                    //record the back track position into the safe path
+                    //go to empty index
+                    UpdateSafePos();
+                    SetSafePath(safePath[safePos -1, 0], safePath[safePos-1, 1]);
+
+                    //update the visited status of this position
+                    grid[row, column].IsVisited(true);
+
+                    //Dog can go back to the previous position ()
+                    ReturnSafePath(safePath[safePos-1, 0], safePath[safePos-1, 1]);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.Write(ex);
+                //Console.Write("There is no successful path! :(");
+            }
+
+        }
+        #endregion Methods
+
+        public class Minefield
+        {
+            #region Fields
+            internal bool isSafe;
+            internal bool visited;
+
+            #endregion
+
+            #region Constructor
+            public Minefield()
+            {
+                isSafe = true;
+                visited = false;
+            }
+
+            #endregion
+
+            #region Methods
+            internal void IsSafe(bool isSafe)
+            {
+                this.isSafe = isSafe;
+            }
+            internal bool GetSafety()
+            {
+                return this.isSafe;
+            }
+
+            internal void IsVisited(bool visited)
+            {
+                this.visited = visited;
+            }
+            internal bool GetVisited()
+            {
+                return this.visited;
+            }
+
+            #endregion
+        }
+
+        static void Main(string[] args)
+        {
+            Task3.Minefields grid = new Task3.Minefields(5, 5);
+
+            Console.Write("Minefield: \n");
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    Console.Write("[" + grid.GetGridSafety(j, i) + "] ");
+                }
+                Console.Write("\n");
+            }
+
+            Console.Write("\nSafe Path of dogs: \n");
+            grid.ReturnSafePath(1, -1); //starting position
+
+            Console.Write("\n\nSimplified Return Path:");
+            int[,] returnPath = grid.GetSafePath();
+            int safePathLen = grid.GetSafePos(); //get the number of set of safe path available
+            for (int i = 0; i < safePathLen; i++)
+            {
+                if(returnPath[i+1, 0] - returnPath[i,0] < 2 && returnPath[i + 1, 1] - returnPath[i, 1] < 2 &&
+                    i+1 < safePathLen)
+                    Console.Write("[" + returnPath[i,0] + "," + returnPath[i,1] + "]");
+            }
+            Console.Write("\n");
+        }
+    }
+}
