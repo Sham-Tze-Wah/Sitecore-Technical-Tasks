@@ -48,8 +48,10 @@ bool isPalindrome(string inputString){
 
 int main(){
     string inputString = "";
+    cout<<"Enter any text: ";
     cin>>inputString;
-    cout<<"Return result should be: "<<isPalindrome(inputString);
+    bool palindrome = isPalindrome(inputString);
+    cout<<"Return result should be: "<<(palindrome>0?"true":"false");
     
     return 0;
 }
