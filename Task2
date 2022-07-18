@@ -11,8 +11,9 @@ bool isPalindrome(string inputString){
     int size = inputString.length(); 
     
     //check for the front and back whether they are the same until i>size-1 or i==size-1
-    int j = size -1;
-    int k=0;
+    int j = size -1; //back position
+    int k=0; //front position
+    
     for(int i=0; i<size/2 && palindrome == true; i++){
         //to uniform the alphabet of the inputString
         tolower(inputString[k]);
